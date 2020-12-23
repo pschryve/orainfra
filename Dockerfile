@@ -62,11 +62,10 @@ RUN echo "<?php phpinfo(); ?>" > /var/www/html/index.php
 # Install orainfra library and application
 RUN mkdir -p /var/www/html/_lib/conf
 RUN mkdir -p /var/www/html/_lib/tmp
-RUN chmod -R 777 /var/www/html
 
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf \
-  && chgrp -R 0 /var/log/httpd /var/run/httpd /var/www/html \
-  && chmod -R g=u /var/log/httpd /var/run/httpd /var/www/html
+  && chgrp -R 0 /var/log/httpd /var/run/httpd /var/www/html /var/www/html/_lib/conf /var/www/html/_lib/tmp \
+  && chmod -R g=u /var/log/httpd /var/run/httpd /var/www/html /var/www/html/_lib/conf /var/www/html/_lib/tmp
 
 EXPOSE 8080
 USER 1001
