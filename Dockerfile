@@ -15,10 +15,28 @@ RUN yum -y install unzip && \
     yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm && \
     yum-config-manager --enable remi-php73 && \
     yum -y install epel-release yum-utils
+#
+# Install java
+RUN yum -y install java
+#
+# Install http
+RUN yum -y install httpd && systemctl enable httpd
+#
+# Install and configure php
+RUN yum -y install php php-bcmath php-common php-cli php-gd php-json php-ldap php-mbstring php-soap php-xml php-zip php-pgsql php-pear
+RUN php -v
+RUN echo "max_execution_time = 3600" >> /etc/php.ini && \
+    echo "max_input_time = 3600" >> /etc/php.ini && \
+    echo "max_input_vars = 10000" >> /etc/php.ini && \
+    echo "memory_limit = 1024M" >> /etc/php.ini && \
+    echo "post_max_size = 1024M" >> /etc/php.ini && \
+    echo "upload_max_filesize = 1024M" >> /etc/php.ini && \
+    echo "max_file_uploads = 200" >> /etc/php.ini && \
+    echo "short_open_tag = On" >> /etc/php.ini && \
+    echo "disable_functions =" >> /etc/php.ini && \
+    echo "date.timezone = Europe/Brussels" >> /etc/php.ini && \
+    echo "session.save_path = \"/tmp\"" >> /etc/php.ini
 
-RUN yum --disableplugin=subscription-manager -y module enable php:7.3 \
-  && yum --disableplugin=subscription-manager -y install httpd php \
-  && yum --disableplugin=subscription-manager clean all
 
 #ADD index.php /var/www/html
 
