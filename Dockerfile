@@ -25,6 +25,7 @@ RUN yum -y install java
 # Install http
 #RUN yum -y install httpd && systemctl enable httpd
 RUN yum -y install httpd
+RUN sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf
 #
 # Install and configure php
 RUN yum -y install php php-bcmath php-common php-cli php-gd php-json php-ldap php-mbstring php-soap php-xml php-zip php-pgsql php-pear
