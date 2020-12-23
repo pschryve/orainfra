@@ -36,9 +36,28 @@ RUN echo "max_execution_time = 3600" >> /etc/php.ini && \
     echo "disable_functions =" >> /etc/php.ini && \
     echo "date.timezone = Europe/Brussels" >> /etc/php.ini && \
     echo "session.save_path = \"/tmp\"" >> /etc/php.ini
-
-
-#ADD index.php /var/www/html
+#
+# Install ioncube
+RUN wget https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz -P /tmp
+RUN cd /tmp && tar -xvf /tmp/ioncube_loaders_lin_x86-64.tar.gz
+RUN cp /tmp/ioncube/ioncube_loader_lin_7.3.so /usr/lib64/php/modules
+RUN chmod 755 /usr/lib64/php/modules/ioncube_loader_lin_7.3.so
+RUN echo "zend_extension = \"/usr/lib64/php/modules/ioncube_loader_lin_7.3.so\"" >> /etc/php.ini
+RUN rm -rf /tmp/ioncube && rm -f /tmp/ioncube_loaders_lin_x86-64.tar.gz
+#
+# Install Oracle client
+RUN cd /etc/yum.repos.d && rm -f public-yum-ol7.repo && wget https://yum.oracle.com/public-yum-ol7.repo
+RUN wget http://public-yum.oracle.com/RPM-GPG-KEY-oracle-ol7 -O /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+RUN yum-config-manager --enable ol7_oracle_instantclient
+RUN yum list oracle-instantclient*
+RUN yum -y install oracle-instantclient19.8-basic oracle-instantclient19.8-devel oracle-instantclient19.8-sqlplus
+RUN echo "ORACLE_HOME=/usr/lib/oracle/19.7/client64; export ORACLE_HOME" >> /etc/profile && \
+    echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME/lib; export LD_LIBRARY_PATH" >> /etc/profile && \
+    echo "TNS_ADMIN=/usr/lib/oracle/19.7; export TNS_ADMIN" >> /etc/profile && \
+    echo "PATH=$PATH:$ORACLE_HOME/bin" >> /etc/profile
+RUN yum -y install php-oci8
+    
+RUN echo "<?php phpinfo(); ?> > /var/www/html/index.php
 
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf \
   && chgrp -R 0 /var/log/httpd /var/run/httpd /var/www/html \
