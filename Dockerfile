@@ -1,4 +1,4 @@
-FROM registry.stage.redhat.io/ubi8/ubi:8.3
+FROM registry.access.redhat.com/ubi8/ubi:8.3
 
 # This image provides an Apache+PHP environment for running PHP
 # applications.
