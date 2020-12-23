@@ -20,7 +20,7 @@ RUN yum -y install unzip && \
 RUN yum -y install java
 #
 # Install http
-RUN yum -y install httpd && systemctl enable httpd
+RUN yum -y install httpd
 #
 # Install and configure php
 RUN yum -y install php php-bcmath php-common php-cli php-gd php-json php-ldap php-mbstring php-soap php-xml php-zip php-pgsql php-pear
@@ -41,8 +41,8 @@ RUN echo "max_execution_time = 3600" >> /etc/php.ini && \
 #ADD index.php /var/www/html
 
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf \
-  && chgrp -R 0 /var/log/httpd /var/run/httpd \
-  && chmod -R g=u /var/log/httpd /var/run/httpd
+  && chgrp -R 0 /var/log/httpd /var/run/httpd /var/www/html \
+  && chmod -R g=u /var/log/httpd /var/run/httpd /var/www/html
 
 EXPOSE 8080
 USER 1001
