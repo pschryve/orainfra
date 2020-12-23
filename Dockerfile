@@ -66,7 +66,8 @@ RUN mkdir -p /var/www/html/_lib/tmp
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf \
   && chgrp -R 0 /var/log/httpd /var/run/httpd /var/www/html \
   && chmod -R g=u /var/log/httpd /var/run/httpd /var/www/html \
-  && chmod -R 777 /var/log/httpd /var/run/httpd /var/www/html
+  && chmod -R 777 /var/log/httpd /var/run/httpd /var/www/html \
+  && chmod 777 /var /var/www
 
 EXPOSE 8080
 USER 1001
