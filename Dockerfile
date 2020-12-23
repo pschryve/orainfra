@@ -23,7 +23,8 @@ RUN yum -y install unzip && \
 RUN yum -y install java
 #
 # Install http
-RUN yum -y install httpd && systemctl enable httpd
+#RUN yum -y install httpd && systemctl enable httpd
+RUN yum -y install httpd
 #
 # Install and configure php
 RUN yum -y install php php-bcmath php-common php-cli php-gd php-json php-ldap php-mbstring php-soap php-xml php-zip php-pgsql php-pear
@@ -69,8 +70,8 @@ RUN echo orainfra:orainfra123 | chpasswd
 RUN yum update -y && yum upgrade -y
 #
 # Install ssh
-RUN yum -y install openssh-server openssh-clients 
-RUN systemctl enable sshd.service
+#RUN yum -y install openssh-server openssh-clients 
+#RUN systemctl enable sshd.service
 #
 # Install orainfra library and application
 RUN mkdir -p /var/www/html/_lib/conf
@@ -78,9 +79,9 @@ RUN mkdir -p /var/www/html/_lib/tmp
 RUN chmod -R 777 /var/www/html
 #
 # Expose the container listening ports
-EXPOSE 80
-EXPOSE 22
+EXPOSE 8080
+#EXPOSE 22
 #
 # Start environment
-ENTRYPOINT ["/usr/sbin/init"]
-CMD ["systemctl"]
+#ENTRYPOINT ["/usr/sbin/init"]
+#CMD ["systemctl"]
