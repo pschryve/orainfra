@@ -1,4 +1,12 @@
-FROM php:7.4-cli
-COPY . /usr/src/myapp
-WORKDIR /usr/src/myapp
-CMD [ "php", "./your-script.php" ]
+FROM php:7-apache
+MAINTAINER YOUR_EMAIL_OR_ORGANIZATION
+
+COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
+COPY start-apache /usr/local/bin
+RUN a2enmod rewrite
+
+# Copy application source
+COPY src /var/www/
+RUN chown -R www-data:www-data /var/www
+
+CMD ["start-apache"]
