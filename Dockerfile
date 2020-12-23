@@ -1,92 +1,82 @@
-FROM php:7.0-apache
-MAINTAINER Thivinfo <sebastien@thivinfo.com>
+FROM rhscl/s2i-base-rhel7:1
 
-RUN usermod -u 1000 www-data
-RUN groupmod -g 1000 www-data
+# This image provides an Apache+PHP environment for running PHP
+# applications.
 
-# Install GD
-RUN apt-get update \
-    && apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libpng12-dev \
-    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
-    && docker-php-ext-install gd
+EXPOSE 8080
+EXPOSE 8443
 
-# Install MCrypt
-RUN apt-get update \
-    && apt-get install -y libmcrypt-dev \
-    && docker-php-ext-install mcrypt
+# Description
+# This image provides an Apache 2.4 + PHP 7.4 environment for running PHP applications.
+# Exposed ports:
+# * 8080 - alternative port for http
 
-# Install Intl
-RUN apt-get update \
-    && apt-get install -y libicu-dev \
-    && docker-php-ext-install intl
+ENV PHP_VERSION=7.4 \
+    PHP_VER_SHORT=74 \
+    NAME=php \
+    PATH=$PATH:/opt/rh/rh-php74/root/usr/bin
 
-ENV XDEBUG_ENABLE 0
-RUN pecl config-set preferred_state beta \
-    && pecl install -o -f xdebug \
-    && rm -rf /tmp/pear \
-    && pecl config-set preferred_state stable
-COPY ./99-xdebug.ini.disabled /usr/local/etc/php/conf.d/
+ENV SUMMARY="Platform for building and running PHP $PHP_VERSION applications" \
+    DESCRIPTION="PHP $PHP_VERSION available as container is a base platform for \
+building and running various PHP $PHP_VERSION applications and frameworks. \
+PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers \
+to write dynamically generated web pages. PHP also offers built-in database integration \
+for several commercial and non-commercial database management systems, so writing \
+a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding \
+is probably as a replacement for CGI scripts."
 
-# Install Mysql
-RUN docker-php-ext-install mysqli pdo_mysql
-#RUN apt-get update\
-#    && apt-get install -y php7.0-mysql\
-#    && docker-php-ext-install mysqli pdo_mysql
+LABEL summary="${SUMMARY}" \
+      description="${DESCRIPTION}" \
+      io.k8s.description="${DESCRIPTION}" \
+      io.k8s.display-name="Apache 2.4 with PHP ${PHP_VERSION}" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.tags="builder,${NAME},${NAME}${PHP_VER_SHORT},rh-${NAME}${PHP_VER_SHORT}" \
+      io.openshift.s2i.scripts-url="image:///usr/libexec/s2i" \
+      io.s2i.scripts-url="image:///usr/libexec/s2i" \
+      name="rhscl/${NAME}-${PHP_VER_SHORT}-rhel7" \
+      com.redhat.component="rh-${NAME}${PHP_VER_SHORT}-container" \
+      version="1" \
+      com.redhat.license_terms="https://www.redhat.com/en/about/red-hat-end-user-license-agreements#UBI" \
+      help="For more information visit https://github.com/sclorg/s2i-${NAME}-container" \
+      usage="s2i build https://github.com/sclorg/s2i-php-container.git --context-dir=${PHP_VERSION}/test/test-app rhscl/${NAME}-${PHP_VER_SHORT}-rhel7 sample-server" \
+      maintainer="SoftwareCollections.org <sclorg@redhat.com>"
 
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php \
-    && mv composer.phar /usr/local/bin/composer
+# Install Apache httpd and PHP
+RUN yum install -y yum-utils && \
+    prepare-yum-repositories rhel-server-rhscl-7-rpms && \
+    INSTALL_PKGS="rh-php74 rh-php74-php rh-php74-php-mysqlnd rh-php74-php-pgsql rh-php74-php-bcmath \
+                  rh-php74-php-gd rh-php74-php-intl rh-php74-php-ldap rh-php74-php-mbstring rh-php74-php-pdo \
+                  rh-php74-php-process rh-php74-php-soap rh-php74-php-opcache rh-php74-php-xml \
+                  rh-php74-php-gmp rh-php74-php-pecl-apcu httpd24-mod_ssl" && \
+    yum install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
+    rpm -V $INSTALL_PKGS && \
+    yum -y clean all --enablerepo='*'
 
-# Install mbstring
-RUN docker-php-ext-install mbstring
+ENV PHP_CONTAINER_SCRIPTS_PATH=/usr/share/container-scripts/php/ \
+    APP_DATA=${APP_ROOT}/src \
+    PHP_DEFAULT_INCLUDE_PATH=/opt/rh/rh-php74/root/usr/share/pear \
+    PHP_SYSCONF_PATH=/etc/opt/rh/rh-php74 \
+    PHP_HTTPD_CONF_FILE=rh-php74-php.conf \
+    HTTPD_CONFIGURATION_PATH=${APP_ROOT}/etc/conf.d \
+    HTTPD_MAIN_CONF_PATH=/etc/httpd/conf \
+    HTTPD_MAIN_CONF_D_PATH=/etc/httpd/conf.d \
+    HTTPD_MODULES_CONF_D_PATH=/etc/httpd/conf.modules.d \
+    HTTPD_VAR_RUN=/var/run/httpd \
+    HTTPD_DATA_PATH=/var/www \
+    HTTPD_DATA_ORIG_PATH=/opt/rh/httpd24/root/var/www \
+    HTTPD_VAR_PATH=/opt/rh/httpd24/root/var \
+    SCL_ENABLED=rh-php74
 
-# Install soap
-RUN apt-get update \
-    && apt-get install -y libxml2-dev \
-    && docker-php-ext-install soap
+# Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH
+COPY ./s2i/bin/ $STI_SCRIPTS_PATH
 
-# Install opcache
-RUN docker-php-ext-install opcache
+# Copy extra files to the image.
+COPY ./root/ /
 
-# Install PHP zip extension
-RUN docker-php-ext-install zip
+# Reset permissions of filesystem to default values
+RUN /usr/libexec/container-setup && rpm-file-permissions
 
-# Install Git
-RUN apt-get update \
-    && apt-get install -y git
+USER 1001
 
-# Install xsl
-RUN apt-get update \
-    && apt-get install -y libxslt-dev \
-    && docker-php-ext-install xsl
-
-# Define PHP_TIMEZONE env variable
-ENV PHP_TIMEZONE Europe/Paris
-
-# Configure Apache Document Root
-ENV APACHE_DOC_ROOT /var/www/html
-
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
-# Additional PHP ini configuration
-COPY ./999-php.ini /usr/local/etc/php/conf.d/
-
-COPY ./index.php /var/www/html/index.php
-
-# Install ssmtp Mail Transfer Agent
-RUN apt-get update \
-    && apt-get install -y ssmtp \
-    && apt-get clean \
-    && echo "FromLineOverride=YES" >> /etc/ssmtp/ssmtp.conf \
-    && echo 'sendmail_path = "/usr/sbin/ssmtp -t"' > /usr/local/etc/php/conf.d/mail.ini
-
-# Install MySQL CLI Client
-RUN apt-get update \
-    && apt-get install -y mysql-client
-
-########################################################################################################################
-
-# Start!
-COPY ./start /usr/local/bin/
-CMD ["start"]
+# Set the default CMD to print the usage of the language image
+CMD $STI_SCRIPTS_PATH/usage
