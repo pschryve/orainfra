@@ -57,7 +57,7 @@ RUN echo "ORACLE_HOME=/usr/lib/oracle/19.7/client64; export ORACLE_HOME" >> /etc
     echo "PATH=$PATH:$ORACLE_HOME/bin" >> /etc/profile
 RUN yum -y install php-oci8
     
-RUN echo "<?php phpinfo(); ?> > /var/www/html/index.php
+RUN echo "<?php phpinfo(); ?>" > /var/www/html/index.php
 
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/httpd/conf/httpd.conf \
   && chgrp -R 0 /var/log/httpd /var/run/httpd /var/www/html \
