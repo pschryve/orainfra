@@ -1,4 +1,4 @@
-FROM rhscl/s2i-base-rhel7:1
+FROM artifactory/docker/ubi7/ubi:7.8
 
 # This image provides an Apache+PHP environment for running PHP
 # applications.
