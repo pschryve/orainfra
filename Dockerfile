@@ -19,4 +19,4 @@ RUN sed -E -i -e 's/DirectoryIndex (.*)$/DirectoryIndex index.php \1/g' /etc/htt
 EXPOSE 80
 
 # Start Apache
-CMD ["/usr/sbin/httpd","-D","FOREGROUND"]
+#CMD ["/usr/sbin/httpd","-D","FOREGROUND"]
